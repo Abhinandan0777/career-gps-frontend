@@ -545,7 +545,7 @@ function AppContent() {
       <footer className="mt-16 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
-            © 2024 Career GPS Platform. Navigate your career with confidence.
+            © 2026 Career GPS Platform. Navigate your career with confidence.
           </p>
         </div>
       </footer>

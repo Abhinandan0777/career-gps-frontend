@@ -163,7 +163,7 @@ export default function MyEnrollments() {
                 {/* Course Title */}
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="text-xl font-bold text-white flex-1 line-clamp-2">
-                    {enrollment.courseTitle || 'Untitled Course'}
+                    {enrollment.course?.title || 'Untitled Course'}
                   </h3>
                   <span className={`ml-3 px-3 py-1 rounded-full text-xs font-semibold border flex-shrink-0 ${getStatusColor(enrollment.status)}`}>
                     {getStatusEmoji(enrollment.status)} {enrollment.status}
@@ -217,7 +217,7 @@ export default function MyEnrollments() {
                   
                   {enrollment.status !== 'completed' && (
                     <button
-                      onClick={() => handleUnenroll(enrollment.id, enrollment.courseTitle)}
+                      onClick={() => handleUnenroll(enrollment.id, enrollment.course?.title)}
                       className="px-4 py-3 bg-red-500/20 text-red-300 border border-red-500/30 rounded-xl font-semibold hover:bg-red-500/30 transition-all"
                       title="Unenroll from course"
                     >
