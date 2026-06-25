@@ -656,10 +656,29 @@ function Home() {
 }
 
 function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Redirect users to their role-specific dashboard
+    if (user?.role === 'learner') {
+      navigate('/career/dashboard', { replace: true });
+    } else if (user?.role === 'creator') {
+      navigate('/creator/dashboard', { replace: true });
+    } else if (user?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true });
+    } else {
+      // Fallback to career dashboard for unknown roles
+      navigate('/career/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+  
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-      <p className="text-gray-600">Protected dashboard - requires authentication</p>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary-500"></div>
+        <p className="text-gray-600 font-medium">Redirecting to your dashboard...</p>
+      </div>
     </div>
   );
 }

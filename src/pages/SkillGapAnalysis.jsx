@@ -325,7 +325,44 @@ const SkillGapAnalysis = () => {
             </div>
           )}
 
-          {/* Missing Skills */}
+          {/* Critical Missing Skills - PRIORITY */}
+          {analysis.criticalMissing && analysis.criticalMissing.length > 0 && (
+            <div className="glass rounded-2xl p-8 border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-red-50">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-3 shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">🔥 Critical Skills - Learn These First!</h2>
+                  <p className="text-gray-700 text-sm font-medium">Most important skills to focus on for getting hired</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-3 mb-4">
+                {analysis.criticalMissing.map((skill, index) => (
+                  <div
+                    key={index}
+                    className="px-5 py-3 bg-white border-2 border-orange-400 rounded-xl flex items-center space-x-3 hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    <div className="flex items-center justify-center w-6 h-6 bg-orange-500 rounded-full text-white text-xs font-bold">
+                      {index + 1}
+                    </div>
+                    <span className="text-base font-bold text-gray-900">{skill}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-4 bg-white rounded-lg border border-orange-200">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  <span className="font-bold text-orange-600">💡 Why these matter:</span> These are the most frequently required skills in job postings for {analysis.jobRole?.name}. Mastering these will significantly boost your employability and help you pass technical interviews.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* All Missing Skills */}
           {analysis.missingSkills && analysis.missingSkills.length > 0 && (
             <div className="glass rounded-2xl p-8 border border-gray-200/50">
               <div className="flex items-center mb-6">
@@ -335,8 +372,8 @@ const SkillGapAnalysis = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Missing Skills</h2>
-                  <p className="text-gray-600 text-sm">Skills you need to learn</p>
+                  <h2 className="text-2xl font-bold text-gray-900">All Missing Skills</h2>
+                  <p className="text-gray-600 text-sm">Complete list of skills you need to learn</p>
                 </div>
               </div>
               
@@ -350,6 +387,37 @@ const SkillGapAnalysis = () => {
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
                     <span className="text-sm font-medium text-gray-900">{skill}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Recommendations */}
+          {analysis.recommendations && analysis.recommendations.length > 0 && (
+            <div className="glass rounded-2xl p-8 border-2 border-primary-300 bg-gradient-to-br from-primary-50 to-purple-50">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-500 rounded-lg flex items-center justify-center mr-3 shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">💡 AI-Powered Recommendations</h2>
+                  <p className="text-gray-700 text-sm font-medium">Actionable advice from industry experts</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {analysis.recommendations.map((recommendation, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start p-4 bg-white rounded-xl border border-primary-200 hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    <div className="flex items-center justify-center min-w-[32px] h-8 bg-gradient-to-br from-primary-500 to-purple-500 rounded-lg text-white font-bold mr-4 shadow">
+                      {index + 1}
+                    </div>
+                    <p className="text-gray-800 leading-relaxed flex-1">{recommendation}</p>
                   </div>
                 ))}
               </div>
