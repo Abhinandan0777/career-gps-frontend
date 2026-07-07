@@ -27,6 +27,8 @@ export default function LessonManagement() {
     title: '',
     content: '',
     videoUrl: '',
+    videoFile: null,
+    videoType: 'url', // 'url' or 'upload'
     duration: '',
     order: ''
   });
@@ -61,11 +63,37 @@ export default function LessonManagement() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type, files } = e.target;
+    
+    if (type === 'file') {
+      const file = files[0];
+      if (file) {
+        // Validate file type (video only)
+        const validTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+        if (!validTypes.includes(file.type)) {
+          setError('Invalid file type. Please upload a video file (MP4, WebM, OGG, MOV)');
+          return;
+        }
+        
+        // Validate file size (max 500MB)
+        const maxSize = 500 * 1024 * 1024; // 500MB
+        if (file.size > maxSize) {
+          setError('File size too large. Maximum size is 500MB');
+          return;
+        }
+        
+        setFormData(prev => ({
+          ...prev,
+          videoFile: file
+        }));
+        setError('');
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleAddLesson = () => {
@@ -74,6 +102,8 @@ export default function LessonManagement() {
       title: '',
       content: '',
       videoUrl: '',
+      videoFile: null,
+      videoType: 'url',
       duration: '',
       order: nextOrder.toString()
     });
@@ -86,6 +116,8 @@ export default function LessonManagement() {
       title: lesson.title || '',
       content: lesson.content || '',
       videoUrl: lesson.videoUrl || '',
+      videoFile: null,
+      videoType: lesson.videoUrl ? 'url' : 'upload',
       duration: lesson.durationMinutes?.toString() || '',
       order: lesson.order?.toString() || ''
     });
@@ -100,6 +132,8 @@ export default function LessonManagement() {
       title: '',
       content: '',
       videoUrl: '',
+      videoFile: null,
+      videoType: 'url',
       duration: '',
       order: ''
     });
@@ -125,28 +159,50 @@ export default function LessonManagement() {
       return;
     }
 
+    // Validate video source
+    if (formData.videoType === 'url' && !formData.videoUrl.trim()) {
+      setError('Video URL is required when using URL option');
+      return;
+    }
+    if (formData.videoType === 'upload' && !formData.videoFile && !editingLesson) {
+      setError('Please select a video file to upload');
+      return;
+    }
+
     try {
       setError('');
+      setLoading(true);
       
-      const lessonData = {
-        courseId,
-        title: formData.title,
-        content: formData.content,
-        videoUrl: formData.videoUrl || null,
-        durationMinutes: parseInt(formData.duration, 10),
-        order: parseInt(formData.order, 10)
-      };
+      // Prepare form data for multipart upload
+      const submitData = new FormData();
+      submitData.append('courseId', courseId);
+      submitData.append('title', formData.title);
+      submitData.append('content', formData.content);
+      submitData.append('durationMinutes', parseInt(formData.duration, 10));
+      submitData.append('order', parseInt(formData.order, 10));
+      
+      // Add video based on type
+      if (formData.videoType === 'url') {
+        submitData.append('videoUrl', formData.videoUrl);
+      } else if (formData.videoFile) {
+        submitData.append('video', formData.videoFile);
+      } else if (editingLesson && editingLesson.videoUrl) {
+        // Keep existing video URL when editing without new file
+        submitData.append('videoUrl', editingLesson.videoUrl);
+      }
 
       if (editingLesson) {
-        await lessonsAPI.updateLesson(editingLesson.id, lessonData);
+        await lessonsAPI.updateLesson(editingLesson.id, submitData);
       } else {
-        await lessonsAPI.createLesson(lessonData);
+        await lessonsAPI.createLesson(submitData);
       }
 
       await fetchCourseAndLessons();
       handleCancelForm();
     } catch (err) {
       setError(err.response?.data?.message || `Failed to ${editingLesson ? 'update' : 'create'} lesson`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -329,18 +385,120 @@ export default function LessonManagement() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-white font-semibold mb-2">
-                    Video URL
+                <div className="md:col-span-2">
+                  <label className="block text-white font-semibold mb-3">
+                    Video Source
                   </label>
-                  <input
-                    type="url"
-                    name="videoUrl"
-                    value={formData.videoUrl}
-                    onChange={handleChange}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
-                  />
+                  
+                  {/* Video Type Tabs */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, videoType: 'url', videoFile: null }))}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                        formData.videoType === 'url'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      }`}
+                    >
+                      🔗 Video URL (YouTube, Vimeo, etc.)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, videoType: 'upload', videoUrl: '' }))}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                        formData.videoType === 'upload'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      }`}
+                    >
+                      📤 Upload Video File
+                    </button>
+                  </div>
+
+                  {/* URL Input */}
+                  {formData.videoType === 'url' && (
+                    <div className="animate-fade-in">
+                      <input
+                        type="url"
+                        name="videoUrl"
+                        value={formData.videoUrl}
+                        onChange={handleChange}
+                        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
+                      />
+                      <p className="text-gray-400 text-sm mt-2">
+                        Paste the URL of your video from YouTube, Vimeo, or any other platform
+                      </p>
+                    </div>
+                  )}
+
+                  {/* File Upload */}
+                  {formData.videoType === 'upload' && (
+                    <div className="animate-fade-in">
+                      <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-purple-500 transition-colors">
+                        <input
+                          type="file"
+                          id="videoFile"
+                          name="videoFile"
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                          onChange={handleChange}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="videoFile"
+                          className="cursor-pointer block"
+                        >
+                          <div className="mb-4">
+                            {formData.videoFile ? (
+                              <div className="inline-block p-4 bg-green-500/20 border border-green-500/50 rounded-xl">
+                                <svg className="w-12 h-12 text-green-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="inline-block p-4 bg-purple-500/20 border border-purple-500/50 rounded-xl">
+                                <svg className="w-12 h-12 text-purple-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {formData.videoFile ? (
+                            <div>
+                              <p className="text-white font-semibold mb-1">
+                                ✅ {formData.videoFile.name}
+                              </p>
+                              <p className="text-gray-400 text-sm mb-2">
+                                {(formData.videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                              <p className="text-purple-400 text-sm">
+                                Click to change file
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-white font-semibold mb-1">
+                                Click to select video file
+                              </p>
+                              <p className="text-gray-400 text-sm">
+                                or drag and drop your video here
+                              </p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                      
+                      <div className="mt-3 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                        <p className="text-blue-300 text-sm">
+                          <strong>📌 Supported formats:</strong> MP4, WebM, OGG, MOV<br />
+                          <strong>📦 Maximum size:</strong> 500 MB<br />
+                          <strong>💡 Tip:</strong> Compress large videos before uploading for faster processing
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>

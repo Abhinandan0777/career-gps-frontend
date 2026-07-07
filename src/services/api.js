@@ -116,8 +116,26 @@ export const coursesAPI = {
 // Lessons API
 export const lessonsAPI = {
   getLessonById: (lessonId) => apiClient.get(`/lessons/${lessonId}`),
-  createLesson: (lessonData) => apiClient.post('/lessons', lessonData),
-  updateLesson: (lessonId, lessonData) => apiClient.put(`/lessons/${lessonId}`, lessonData),
+  createLesson: (lessonData) => {
+    // Support both JSON and FormData for video uploads
+    const config = lessonData instanceof FormData
+      ? { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000 // 5 minutes for large video uploads
+        }
+      : {};
+    return apiClient.post('/lessons', lessonData, config);
+  },
+  updateLesson: (lessonId, lessonData) => {
+    // Support both JSON and FormData for video uploads
+    const config = lessonData instanceof FormData
+      ? { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000 // 5 minutes for large video uploads
+        }
+      : {};
+    return apiClient.put(`/lessons/${lessonId}`, lessonData, config);
+  },
   deleteLesson: (lessonId) => apiClient.delete(`/lessons/${lessonId}`),
   markLessonComplete: (lessonId) => apiClient.post(`/lessons/${lessonId}/complete`),
   getTranscript: (lessonId) => apiClient.get(`/lessons/${lessonId}/transcript`),
